@@ -6,7 +6,7 @@ Generate [@effect/schema](https://www.npmjs.com/package/@effect/schema) definiti
 ## Usage
 
 ```
-openapi-to-effect generate ./api.json ./generated --spec=./spec.ts
+openapi-to-effect gen ./api.json ./generated --spec=./spec.ts
 ```
 
 
