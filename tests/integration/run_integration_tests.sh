@@ -1,5 +1,4 @@
-set -eu
-#set -o pipefail
+set -euo pipefail
 
 # Get the path to the current directory (works in both bash and zsh)
 # https://stackoverflow.com/a/54755784

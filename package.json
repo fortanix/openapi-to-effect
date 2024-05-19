@@ -38,7 +38,7 @@
     "node": "node --import=tsx",
     "check:types": "tsc --noEmit && echo 'No type errors found'",
     "test:unit": "node --import=tsx --test --test-reporter=spec \"**/*.test.ts\" # Note: glob requires Node v22",
-    "test:integration": "./tests/integration/run_integration_tests.sh",
+    "test:integration": "bash ./tests/integration/run_integration_tests.sh",
     "test": "npm run test:unit && npm run test:integration",
     "test-watch": "node --import=tsx --test --test-reporter=spec --watch tests",
     "_build": "NODE_ENV=production babel src --extensions=.ts,.tsx --delete-dir-on-start",
@@ -53,7 +53,7 @@
     "babel": "// Still needed because tsc doesn't like to emit files with .ts extensions"
   },
   "devDependencies": {
-    "typescript": "^5.5.0-beta",
+    "typescript": "^5.4.5",
     "tsx": "^4.10.2",
     "@babel/core": "^7.24.5",
     "@babel/cli": "^7.24.5",
