@@ -1,4 +1,6 @@
 
+![NPM](https://img.shields.io/npm/v/openapi-to-effect)
+
 # openapi-to-effect
 
 Generate [@effect/schema](https://www.npmjs.com/package/@effect/schema) definitions from an [OpenAPI](https://www.openapis.org) document.
