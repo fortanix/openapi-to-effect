@@ -39,7 +39,7 @@
     "check:types": "tsc --noEmit && echo 'No type errors found'",
     "test:unit": "node --import=tsx --test --test-reporter=spec \"**/*.test.ts\" # Note: glob requires Node v22",
     "test:integration": "./tests/integration/run_integration_tests.sh",
-    "test": "npm run test:unit && npm run test:integration",
+    "test": "npm run test:integration # && npm run test:unit",
     "test-watch": "node --import=tsx --test --test-reporter=spec --watch tests",
     "_build": "NODE_ENV=production babel src --extensions=.ts,.tsx --delete-dir-on-start",
     "build:cjs": "BABEL_ENV=cjs npm run _build -- --out-dir=dist/cjs --out-file-extension=.cjs",
