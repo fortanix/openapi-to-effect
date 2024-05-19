@@ -1,5 +1,5 @@
 set -eu
-if [ -z "$BASH" ]; then set -o pipefail; fi;
+#set -o pipefail
 
 # Get the path to the current directory (works in both bash and zsh)
 # https://stackoverflow.com/a/54755784
