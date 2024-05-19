@@ -10,7 +10,6 @@
     "url": "git@github.com:fortanix/openapi-to-effect.git"
   },
   "files": [
-    "./src",
     "./dist"
   ],
   "type": "module",
@@ -38,7 +37,7 @@
     "repl": "tsx",
     "node": "node --import=tsx",
     "check:types": "tsc --noEmit && echo 'No type errors found'",
-    "test:unit": "node --import=tsx --test --test-reporter=spec **/*.test.ts",
+    "test:unit": "node --import=tsx --test --test-reporter=spec \"**/*.test.ts\" # Note: glob requires Node v22",
     "test:integration": "./tests/integration/run_integration_tests.sh",
     "test": "npm run test:unit && npm run test:integration",
     "test-watch": "node --import=tsx --test --test-reporter=spec --watch tests",
@@ -47,7 +46,8 @@
     "build:esm": "BABEL_ENV=esm npm run _build -- --out-dir=dist/esm --out-file-extension=.mjs",
     "build:types": "tsc --project ./tsconfig.decl.json",
     "build": "npm run check:types && npm run build:cjs && npm run build:esm && npm run build:types && chmod +x ./dist/cjs/cli.cjs ./dist/esm/cli.mjs",
-    "generate": "node --import=tsx ./src/openapiToEffect.ts gen"
+    "generate": "node --import=tsx ./src/openapiToEffect.ts gen",
+    "prepare": "npm run build"
   },
   "devDependenciesComments": {
     "babel": "// Still needed because tsc doesn't like to emit files with .ts extensions"
