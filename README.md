@@ -1,5 +1,6 @@
 
-![NPM](https://img.shields.io/npm/v/openapi-to-effect)
+[![npm](https://img.shields.io/npm/v/openapi-to-effect.svg?style=flat-square)](https://www.npmjs.com/package/openapi-to-effect)
+[![GitHub Actions](https://github.com/fortanix/openapi-to-effect/actions/workflows/nodejs.yml/badge.svg)](https://github.com/fortanix/openapi-to-effect/actions)
 
 # openapi-to-effect
 
