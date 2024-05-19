@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 set -euo pipefail
 
 # Get the path to the current directory (works in both bash and zsh)
