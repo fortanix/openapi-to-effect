@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig.json",
+  "include": ["../project_simulation/generated/fixture1"],
+  "compilerOptions": {
+    "noEmit": true,
+  },
+}

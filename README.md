@@ -3,6 +3,13 @@
 
 Generate [@effect/schema](https://www.npmjs.com/package/@effect/schema) definitions from an [OpenAPI](https://www.openapis.org) document.
 
+## Usage
+
+```
+openapi-to-effect generate ./api.json ./generated --spec=./spec.ts
+```
+
+
 ## Contributing
 
 We gratefully accept bug reports and contributions from the community.

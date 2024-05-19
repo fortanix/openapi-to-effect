@@ -1,0 +1,16 @@
+
+# OS artifact files
+.DS_Store
+Thumbs.db
+
+# Node artifact files
+node_modules/
+
+# IDEs
+.idea/
+.vscode/
+
+# Project-specific
+/dist/
+/tests/project_simulation/generated/
+!/tests/project_simulation/generated/.gitkeep

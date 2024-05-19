@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  
+  // Ref: https://github.com/tsconfig/bases/blob/main/bases/node20.json
+  "compilerOptions": {
+    // Emission
+    "noEmit": true, // Do not emit by default (only type check)
+    //"emitDeclarationOnly": true,
+    "target": "es2022", // JavaScript language version to emit
+    "module": "es2022", // The type of file to emit (CommonJS/ESM/etc.)
+    //"esModuleInterop": true,
+    //"allowSyntheticDefaultImports": true,
+    
+    // Imports
+    "moduleResolution": "bundler", // Resolve import specifiers like bundlers (allows explicit file extensions)
+    "allowImportingTsExtensions": true, // Allow importing `.ts` extensions
+    "allowJs": false, // If `true` allows to import `.js` files
+    //"resolveJsonModule": true, // Allow importing `.json` files
+    "forceConsistentCasingInFileNames": true, // Do not allow case-insensitive import file name matching
+    
+    // Type checking
+    "lib": ["es2022", "DOM"], // Library declaration files to include (globally)
+    "skipLibCheck": true, // Do not type check declaration files (for performance)
+    "noErrorTruncation": true,
+    
+    // Language
+    "isolatedModules": true, // Restrict language features not compatible with tools like babel
+    "strict": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedIndexedAccess": true
+  },
+  "include": [
+    "./src",
+    "./tests"
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "name": "openapi-to-effect",
+  "version": "0.5.0",
+  "license": "MPL-2.0",
+  "homepage": "https://github.com/fortanix/openapi-to-effect",
+  "description": "OpenAPI to @effect/schema code generator",
+  "author": "Fortanix",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:fortanix/openapi-to-effect.git"
+  },
+  "files": [
+    "./src",
+    "./dist"
+  ],
+  "type": "module",
+  "bin": {
+    "openapi-to-effect": "./dist/esm/cli.mjs"
+  },
+  "exports": {
+    "./generation/generationSpec.ts": {
+      "types": "./dist/types/generation/generationSpec.d.ts",
+      "require": "./dist/cjs/generation/generationSpec.cjs",
+      "default": "./dist/esm/generation/generationSpec.mjs"
+    },
+    "./generation/effSchemGen/genUtil.ts": {
+      "types": "./dist/types/generation/effSchemGen/genUtil.d.ts",
+      "require": "./dist/cjs/generation/effSchemGen/genUtil.cjs",
+      "default": "./dist/esm/generation/effSchemGen/genUtil.mjs"
+    },
+    ".": {
+      "types": "./dist/types/openapiToEffect.d.ts",
+      "require": "./dist/cjs/openapiToEffect.cjs",
+      "default": "./dist/esm/openapiToEffect.mjs"
+    }
+  },
+  "scripts": {
+    "repl": "tsx",
+    "node": "node --import=tsx",
+    "check:types": "tsc --noEmit && echo 'No type errors found'",
+    "test:unit": "node --import=tsx --test --test-reporter=spec **/*.test.ts",
+    "test:integration": "./tests/integration/run_integration_tests.sh",
+    "test": "npm run test:unit && npm run test:integration",
+    "test-watch": "node --import=tsx --test --test-reporter=spec --watch tests",
+    "_build": "NODE_ENV=production babel src --extensions=.ts,.tsx --delete-dir-on-start",
+    "build:cjs": "BABEL_ENV=cjs npm run _build -- --out-dir=dist/cjs --out-file-extension=.cjs",
+    "build:esm": "BABEL_ENV=esm npm run _build -- --out-dir=dist/esm --out-file-extension=.mjs",
+    "build:types": "tsc --project ./tsconfig.decl.json",
+    "build": "npm run check:types && npm run build:cjs && npm run build:esm && npm run build:types && chmod +x ./dist/cjs/cli.cjs ./dist/esm/cli.mjs",
+    "generate": "node --import=tsx ./src/openapiToEffect.ts gen"
+  },
+  "devDependenciesComments": {
+    "babel": "// Still needed because tsc doesn't like to emit files with .ts extensions"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0-beta",
+    "tsx": "^4.10.2",
+    "@babel/core": "^7.24.5",
+    "@babel/cli": "^7.24.5",
+    "@babel/preset-env": "^7.24.5",
+    "@babel/preset-typescript": "^7.24.1",
+    "babel-plugin-replace-import-extension": "^1.1.4",
+    "@types/node": "^20.12.11",
+    "@types/prettier": "^3.0.0",
+    "openapi-types": "^12.1.3"
+  },
+  "dependencies": {
+    "ts-dedent": "^2.2.0",
+    "immutable-json-patch": "^6.0.1",
+    "prettier": "^3.2.5",
+    "prettier-plugin-jsdoc": "^1.3.0",
+    "effect": "^3.1.4",
+    "fast-check": "^3.18.0",
+    "@effect/schema": "^0.67.1"
+  },
+  "peerDependencies": {
+    "openapi-types": "^12.0.0"
+  }
+}
