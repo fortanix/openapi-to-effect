@@ -9,7 +9,10 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.x, 20.x, 22.x]
+        node-version:
+          - 18.x
+          - 20.x
+          #- 22.x # Currently segfaults? https://github.com/fortanix/openapi-to-effect/actions/runs/9235995285/job/25411385965
 
     steps:
     - uses: actions/checkout@v4
