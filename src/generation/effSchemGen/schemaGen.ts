@@ -14,9 +14,6 @@ import { isObjectSchema } from '../../analysis/GraphAnalyzer.ts';
 import { type GenResult, GenResultUtil } from './genUtil.ts';
 
 
-const assertUnreachable = (x: never): never => { throw new Error(`Should not happen`); };
-
-
 export type Context = {
   schemas: Record<string, OpenApiSchema>,
   hooks: GenSpec.GenerationHooks,
@@ -44,12 +41,13 @@ export const generateForStringSchema = (ctx: Context, schema: OpenApi.NonArraySc
     }
     
     let baseSchema = `S.String`;
-    if (schema.format === 'uuid') {
-      baseSchema = `S.UUID`;
-    } else if (schema.format === 'byte') {
+    switch (schema.format) {
+      case 'uuid': baseSchema = `S.UUID`; break;
+      //case 'date': baseSchema = `S.Date`; // FIXME: validate lack of time component
+      case 'date-time': baseSchema = `S.Date`; break;
       // FIXME: using `S.Base64` will result in `Uint8Array` rather than strings, which will break some downstream
       // consumers.
-      //baseSchema = `S.Base64`;
+      //case 'byte': baseSchema = `S.Base64`; break;
     }
     
     let pipe: Array<string> = [baseSchema];
@@ -97,7 +95,13 @@ export const generateForNumberSchema = (
       )`;
     }
     
-    let pipe: Array<string> = [`S.Number`];
+    let baseSchema = `S.Number`;
+    switch (schema.format) {
+      //case 'date': baseSchema = `S.Date`; break; // FIXME: validate lack of time component
+      case 'date-time': baseSchema = `S.DateFromNumber.pipe(S.validDate())`; break;
+    }
+    
+    let pipe: Array<string> = [baseSchema];
     if (schema.type === 'integer') { pipe.push(`S.int()`); }
     
     // Run hook

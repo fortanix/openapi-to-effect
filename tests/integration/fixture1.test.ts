@@ -13,7 +13,7 @@ import { exec as execCallback } from 'node:child_process';
 import { Schema as S } from '@effect/schema';
 
 import assert from 'node:assert/strict';
-import { test, before } from 'node:test';
+import { test } from 'node:test';
 
 
 const exec = promisify(execCallback);
@@ -21,8 +21,8 @@ const exec = promisify(execCallback);
 test('fixture1', { timeout: 30_000/*ms*/ }, async (t) => {
   const before = async () => {
     const cwd = path.dirname(fileURLToPath(import.meta.url));
-    console.log('Preparing integration test...');
-    const { stdout, stderr } = await exec(`./run_integration_tests.sh`, { cwd });
+    console.log('Preparing fixture1...');
+    const { stdout, stderr } = await exec(`./generate_fixture.sh fixture1`, { cwd });
   };
   await before();
   

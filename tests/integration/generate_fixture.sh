@@ -6,29 +6,32 @@ set -euo pipefail
 PATH_CURRENT="$(dirname ${BASH_SOURCE[0]:-${(%):-%x}})"
 cd $PATH_CURRENT
 
+FIXTURE_NAME="${@:-1}"
+
 # Note: do not use `npm run` here, because `npm run` always changes the working directory to that of the project root
 generate() {
   node --import=tsx -- "../../src/openapiToEffect.ts" gen "$@"
 }
 
-TEST_SPEC_PATH="../fixtures/fixture1_spec.ts";
-TEST_API_PATH="../fixtures/fixture1_api.json";
-TEST_OUTPUT_PATH="../project_simulation/generated/fixture1";
+TEST_SPEC_PATH="../fixtures/${FIXTURE_NAME}_spec.ts";
+TEST_API_PATH="../fixtures/${FIXTURE_NAME}_api.json";
+TEST_OUTPUT_PATH="../project_simulation/generated/${FIXTURE_NAME}";
 mkdir -p "${TEST_OUTPUT_PATH}"
 generate --spec="${TEST_SPEC_PATH}" "${TEST_API_PATH}" "${TEST_OUTPUT_PATH}"
 
 echo
 echo 'Generating sample file...'
-cat <<"EOT" | node --import=tsx | npx --silent prettier --parser=babel-ts --single-quote > "${TEST_OUTPUT_PATH}/fixture1_sample.ts"
+cat <<"EOT" | FIXTURE_NAME="${FIXTURE_NAME}" node --import=tsx | npx --silent prettier --parser=babel-ts --single-quote > "${TEST_OUTPUT_PATH}/${FIXTURE_NAME}_sample.ts"
 (async () => {
+  const fixtureName = process.env.FIXTURE_NAME;
   const { dedent } = await import('ts-dedent');
   const S = await import('@effect/schema');
-  const Fx = await import('../project_simulation/generated/fixture1/fixture1.ts');
+  const Fx = await import(`../project_simulation/generated/${fixtureName}/${fixtureName}.ts`);
   
   console.log(dedent`
     import { pipe } from 'effect';
     import { Schema as S, AST } from '@effect/schema';
-    import * as Api from './fixture1.ts';
+    import * as Api from './${fixtureName}.ts';
   ` + '\n\n');
   
   const opts = { errors: 'all', onExcessProperty: 'ignore' };
@@ -58,7 +61,7 @@ cat <<"EOT" | node --import=tsx | npx --silent prettier --parser=babel-ts --sing
 EOT
 echo 'Done!'
 
-node --import=tsx "${TEST_OUTPUT_PATH}/fixture1_sample.ts"
+node --import=tsx "${TEST_OUTPUT_PATH}/${FIXTURE_NAME}_sample.ts"
 
 
 # Type check the output

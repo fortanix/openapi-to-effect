@@ -1,0 +1,55 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Example API",
+    "version": "0.1.0"
+  },
+  "components": {
+    "schemas": {
+      "Category": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "subcategories": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/Category"
+            },
+            "default": {}
+          }
+        },
+        "required": ["name"]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Unique ID",
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "title": "The user's full name.",
+            "type": "string"
+          },
+          "last_logged_in": {
+            "title": "When the user last logged in.",
+            "type": "string", "format": "date-time"
+          },
+          "role": {
+            "title": "The user's role within the system.",
+            "description": "Roles:\n- ADMIN: Administrative permissions\n- USER: Normal permissions\n- AUDITOR: Read only permissions",
+            "type": "string",
+            "enum": ["ADMIN", "USER", "AUDITOR"]
+          },
+          "interests": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Category" },
+            "default": []
+          }
+        },
+        "required": ["name", "last_logged_in", "role"]
+      }
+    }
+  }
+}

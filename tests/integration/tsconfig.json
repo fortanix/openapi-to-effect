@@ -1,6 +1,6 @@
 {
   "extends": "../../tsconfig.json",
-  "include": ["../project_simulation/generated/fixture1"],
+  "include": ["../project_simulation/generated"],
   "compilerOptions": {
     "noEmit": true,
   },
