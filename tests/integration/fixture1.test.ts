@@ -26,6 +26,7 @@ test('fixture1', { timeout: 30_000/*ms*/ }, async (t) => {
   };
   await before();
   
+  // @ts-ignore Will not type check until the generation is complete.
   const fixture = await import('../project_simulation/generated/fixture1/fixture1.ts');
   
   await t.test('RocheName', async (t) => {
