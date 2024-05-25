@@ -92,9 +92,10 @@ npx openapi-to-effect gen ./api.json ./output --spec=./spec.ts
             "type": "string",
             "enum": ["ADMIN", "USER", "AUDITOR"]
           },
-          "posts": {
+          "interests": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Post" }
+            "items": { "$ref": "#/components/schemas/Category" },
+            "default": []
           }
         },
         "required": ["name", "last_logged_in", "role"]
