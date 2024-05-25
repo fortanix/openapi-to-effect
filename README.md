@@ -42,10 +42,10 @@ npx openapi-to-effect gen ./api.json ./output --spec=./spec.ts
 ### Example
 
 ```console
-npx openapi-to-effect gen ./api.json ./output --spec=./spec.ts
+npx openapi-to-effect gen ./example_api.json ./output --spec=./example_spec.ts
 ```
 
-**api.json**
+**example_api.json**
 
 ```json
 {
@@ -98,21 +98,21 @@ npx openapi-to-effect gen ./api.json ./output --spec=./spec.ts
             "default": []
           }
         },
-        "required": ["name", "last_logged_in", "role"]
+        "required": ["id", "name", "last_logged_in", "role"]
       }
     }
   }
 }
 ```
 
-**spec.ts**
+**example_spec.ts**
 
 ```ts
 import { type GenerationSpec } from '../../src/generation/generationSpec.ts';
 
 
 export default {
-  generationMethod: { method: 'bundled', bundleName: 'fixture0' },
+  generationMethod: { method: 'bundled', bundleName: 'example' },
   hooks: {},
   runtime: {},
   modules: {
@@ -136,7 +136,7 @@ export default {
 } satisfies GenerationSpec;
 ```
 
-**Output**
+**output/example.ts**
 
 ```ts
 import { Schema as S } from '@effect/schema';
@@ -169,7 +169,7 @@ export type CategoryEncoded = S.Schema.Encoded<typeof Category>;
 /* User */
 
 export const User = S.Struct({
-  id: S.optional(S.UUID), // Unique ID
+  id: S.UUID, // Unique ID
   name: S.String, // The user's full name.
   last_logged_in: S.Date, // When the user last logged in.
   /**
