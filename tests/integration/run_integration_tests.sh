@@ -4,21 +4,26 @@ set -euo pipefail
 # Get the path to the current directory (works in both bash and zsh)
 # https://stackoverflow.com/a/54755784
 PATH_CURRENT="$(dirname ${BASH_SOURCE[0]:-${(%):-%x}})"
+cd $PATH_CURRENT
 
-TEST_SPEC_PATH="${PATH_CURRENT}/../fixtures/fixture1_spec.ts";
-TEST_API_PATH="${PATH_CURRENT}/../fixtures/fixture1_api.json";
-TEST_OUTPUT_PATH="${PATH_CURRENT}/../project_simulation/generated/fixture1";
+# Note: do not use `npm run` here, because `npm run` always changes the working directory to that of the project root
+generate() {
+  node --import=tsx -- "../../src/openapiToEffect.ts" gen "$@"
+}
+
+TEST_SPEC_PATH="../fixtures/fixture1_spec.ts";
+TEST_API_PATH="../fixtures/fixture1_api.json";
+TEST_OUTPUT_PATH="../project_simulation/generated/fixture1";
 mkdir -p "${TEST_OUTPUT_PATH}"
-npm run generate -- "--spec=${TEST_SPEC_PATH}" "${TEST_API_PATH}" "${TEST_OUTPUT_PATH}";
-
+generate --spec="${TEST_SPEC_PATH}" "${TEST_API_PATH}" "${TEST_OUTPUT_PATH}"
 
 echo
 echo 'Generating sample file...'
-cat <<"EOT" | npm run --silent node | prettier --parser=babel-ts --single-quote > "${TEST_OUTPUT_PATH}/fixture1_sample.ts"
+cat <<"EOT" | node --import=tsx | npx --silent prettier --parser=babel-ts --single-quote > "${TEST_OUTPUT_PATH}/fixture1_sample.ts"
 (async () => {
   const { dedent } = await import('ts-dedent');
   const S = await import('@effect/schema');
-  const Fx = await import('./tests/project_simulation/generated/fixture1/fixture1.ts');
+  const Fx = await import('../project_simulation/generated/fixture1/fixture1.ts');
   
   console.log(dedent`
     import { pipe } from 'effect';
@@ -53,10 +58,10 @@ cat <<"EOT" | npm run --silent node | prettier --parser=babel-ts --single-quote 
 EOT
 echo 'Done!'
 
-npm run node "${TEST_OUTPUT_PATH}/fixture1_sample.ts"
+node --import=tsx "${TEST_OUTPUT_PATH}/fixture1_sample.ts"
 
 
 # Type check the output
 # Note: no way to call `tsc` with a `tsconfig.json` while overriding the input file path dynamically, need to use
 # a specialized `tsconfig.json` file that extends the base config.
-tsc --project "${PATH_CURRENT}/tsconfig.json"
+npx --silent tsc --project tsconfig.json

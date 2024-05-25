@@ -4,7 +4,6 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     strategy:
@@ -12,7 +11,8 @@ jobs:
         node-version:
           - 18.x
           - 20.x
-          #- 22.x # Currently segfaults? https://github.com/fortanix/openapi-to-effect/actions/runs/9235995285/job/25411385965
+          #- 22.x # `tsc` currently segfaults on Node v22. Possibly due to:
+          # https://github.com/nodejs/node/issues/52797
 
     steps:
     - uses: actions/checkout@v4
