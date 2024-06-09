@@ -435,7 +435,7 @@ export const run = async (argsRaw: Array<string>): Promise<void> => {
     log: console.log,
   };
   
-  servicesStorage.run({ logger }, async () => {
+  await servicesStorage.run({ logger }, async () => {
     const command: null | string = args.positionals[0] ?? null;
     if (command === null || args.values.help) {
       printUsage();
