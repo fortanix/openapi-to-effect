@@ -11,6 +11,7 @@ import * as path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { type Stats } from 'node:fs';
 import * as fs from 'node:fs/promises';
+import { AsyncLocalStorage } from 'node:async_hooks';
 
 import { type OpenAPIV3_1 as OpenApi } from 'openapi-types';
 import { type OpenApiSchemaId, type OpenApiSchema } from './util/openapi.ts';
@@ -30,7 +31,14 @@ const ensureTrailingSlash = (path: string) => path.replace(/[/]+$/, '') + '/';
 const cwd: URL = pathToFileURL(ensureTrailingSlash(process.cwd())); // Trailing slash so we can use it as a base URL
 
 
-type ConsoleService = Pick<Console, 'info' | 'error' | 'log'>;
+type Logger = Pick<Console, 'info' | 'error' | 'log'>;
+type Services = { logger: Logger };
+const servicesStorage = new AsyncLocalStorage<Services>();
+const getServices = () => {
+  const services = servicesStorage.getStore();
+  if (typeof services === 'undefined') { throw new Error(`Missing services`); }
+  return services;
+};
 
 // Parse an OpenAPI v3.1 document (in JSON format).
 // @throws Error[code=ENOENT] When the document cannot be read.
@@ -72,10 +80,8 @@ export type GenerateRequest = {
 type GenerateRequestWithSpec = GenerateRequest & { spec: GenSpec.GenerationSpec };
 
 // Generate one module per schema (does not support a spec file)
-export const generateSchemas = async (
-  request: GenerateRequest,
-  { logger }: { logger: ConsoleService },
-): Promise<void> => {
+export const generateSchemas = async (request: GenerateRequest): Promise<void> => {
+  const { logger } = getServices();
   const { document, outputDirectory } = request;
   
   logger.info(`Generating schemas from document: ${document.info.title} ${document.info.version}`);
@@ -126,10 +132,8 @@ export const generateSchemas = async (
 };
 
 // Generate schemas based on the given spec file
-export const generateSchemasWithSpec = async (
-  request: GenerateRequestWithSpec,
-  { logger }: { logger: ConsoleService },
-): Promise<void> => {
+export const generateSchemasWithSpec = async (request: GenerateRequestWithSpec): Promise<void> => {
+  const { logger } = getServices();
   const { document, spec, outputDirectory } = request;
   
   logger.info(`Generating schemas from document: ${document.info.title} ${document.info.version}`);
@@ -284,10 +288,9 @@ export type RequestInput = {
 
 // Parse the given input and return a valid `GenerateRequest` (or throw an error).
 // @throws TypeError[ERR_INVALID_URL] If any of the given file paths are syntactically invalid.
-export const parseRequest = async (
-  { documentPath, outputPath, specPath }: RequestInput,
-  { logger }: { logger: ConsoleService },
-): Promise<GenerateRequest> => {
+export const parseRequest = async ({ documentPath, outputPath, specPath }: RequestInput): Promise<GenerateRequest> => {
+  const { logger } = getServices();
+  
   // Note: the following could throw a `TypeError` exception if the paths are (syntactically) invalid, e.g. `//`
   const documentUrl = new URL(documentPath, cwd);
   const outputUrl = new URL(ensureTrailingSlash(outputPath), cwd); // Trailing slash for use as base URL
@@ -343,7 +346,9 @@ export const parseRequest = async (
 };
 
 
-const printUsage = ({ logger }: { logger: ConsoleService }) => {
+const printUsage = () => {
+  const { logger } = getServices();
+  
   logger.info(dedent`
     Usage: openapi-to-effect [-h | --help] [--silent] <command> [<args>]
     
@@ -361,14 +366,13 @@ type ScriptArgs = {
   positionals: Array<string>,
 };
 
-export const runGenerator = async (
-  args: ScriptArgs,
-  { logger }: { logger: ConsoleService },
-): Promise<void> => {
+export const runGenerator = async (args: ScriptArgs): Promise<void> => {
+  const { logger } = getServices();
+  
   const documentPath: undefined | string = args.positionals[0];
   const outputPath: undefined | string = args.positionals[1];
   if (!documentPath || !outputPath) {
-    printUsage({ logger });
+    printUsage();
     return;
   }
   
@@ -377,12 +381,12 @@ export const runGenerator = async (
     outputPath,
     specPath: args.values.spec,
   };
-  const request: GenerateRequest = await parseRequest(requestInput, { logger });
+  const request: GenerateRequest = await parseRequest(requestInput);
   
   if (request.spec === null) {
-    await generateSchemas(request, { logger });
+    await generateSchemas(request);
   } else {
-    await generateSchemasWithSpec(request as GenerateRequestWithSpec, { logger });
+    await generateSchemasWithSpec(request as GenerateRequestWithSpec);
   }
   
   logger.info('Done!');
@@ -391,14 +395,13 @@ export const runGenerator = async (
 // Example:
 // `npm --silent run node src/openapiToEffect.ts analyze:dependency-tree tests/fixtures/fixture1_api.json\
 //   '#/components/schemas/BatchRequest'`
-export const runAnalyzeDependencyTree = async (
-  args: ScriptArgs,
-  { logger }: { logger: ConsoleService },
-): Promise<void> => {
+export const runAnalyzeDependencyTree = async (args: ScriptArgs): Promise<void> => {
+  const { logger } = getServices();
+  
   const documentPath: undefined | string = args.positionals[0];
   const rootSchemaRef: undefined | string = args.positionals[1];
   if (!documentPath || !rootSchemaRef) {
-    printUsage({ logger });
+    printUsage();
     return;
   }
   
@@ -413,13 +416,6 @@ export const runAnalyzeDependencyTree = async (
 
 // Run the script with the given CLI arguments
 export const run = async (argsRaw: Array<string>): Promise<void> => {
-  // Services
-  const logger: ConsoleService = {
-    info: console.info,
-    error: console.error,
-    log: console.log,
-  };
-  
   // Ref: https://exploringjs.com/nodejs-shell-scripting/ch_node-util-parseargs.html
   const args = parseArgs({
     args: argsRaw,
@@ -432,29 +428,34 @@ export const run = async (argsRaw: Array<string>): Promise<void> => {
     },
   });
   
-  if (args.values.silent) {
-    logger.info = () => {};
-  }
+  // Services
+  const logger: Logger = {
+    info: args.values.silent ? () => {} : console.info,
+    error: console.error,
+    log: console.log,
+  };
   
-  const command: null | string = args.positionals[0] ?? null;
-  if (command === null || args.values.help) {
-    printUsage({ logger });
-    return;
-  }
-  
-  const argsForCommand = { ...args, positionals: args.positionals.slice(1) };
-  switch (command) {
-    case 'gen':
-      await runGenerator(argsForCommand, { logger });
-      break;
-    case 'analyze:dependency-tree':
-      await runAnalyzeDependencyTree(argsForCommand, { logger });
-      break;
-    default:
-      logger.error(`Unknown command '${command}'\n`);
-      printUsage({ logger });
-      break;
-  }
+  servicesStorage.run({ logger }, async () => {
+    const command: null | string = args.positionals[0] ?? null;
+    if (command === null || args.values.help) {
+      printUsage();
+      return;
+    }
+    
+    const argsForCommand = { ...args, positionals: args.positionals.slice(1) };
+    switch (command) {
+      case 'gen':
+        await runGenerator(argsForCommand);
+        break;
+      case 'analyze:dependency-tree':
+        await runAnalyzeDependencyTree(argsForCommand);
+        break;
+      default:
+        logger.error(`Unknown command '${command}'\n`);
+        printUsage();
+        break;
+    }
+  });
 };
 
 const [_argExec, argScript, ...args] = process.argv; // First two arguments should be the executable + script
