@@ -16,6 +16,7 @@ import { type Context as SchemaGenContext, generateForSchema } from './schemaGen
 
 
 const assertUnreachable = (x: never): never => { throw new Error(`Should not happen`); };
+const id = GenResultUtil.encodeIdentifier;
 
 
 // Transform the given `schema` by reordering object fields according the given `ordering` spec.
@@ -191,9 +192,9 @@ export const generateModuleWithSpec = (
         codeExports += '\n\n' + dedent`
           ${schemaExportComment ? `${schemaExportComment}\n` : ''}${
             typeof definitionSpec.typeDeclaration === 'string'
-              //? `export const ${targetSchemaId}: S.Schema<${targetSchemaId}> = ` // Replaced with suspend annotations
-              ? `export const ${targetSchemaId} = `
-              : `export const ${targetSchemaId} = `
+              //? `export const ${id(targetSchemaId)}: S.Schema<${id(targetSchemaId)}> = ` // Replaced with suspend annotations
+              ? `export const ${id(targetSchemaId)} = `
+              : `export const ${id(targetSchemaId)} = `
           }${
             //definitionSpec.lazy ? `S.suspend(() => ${code});` : code // Replaced with suspend annotations
             code
@@ -201,11 +202,11 @@ export const generateModuleWithSpec = (
         `.trim();
         if (typeof definitionSpec.typeDeclaration === 'string') {
           codeExports += dedent`
-            export type ${targetSchemaId} = ${definitionSpec.typeDeclaration};
+            export type ${id(targetSchemaId)} = ${definitionSpec.typeDeclaration};
           `;
         } else {
           codeExports += dedent`
-            export type ${targetSchemaId} = S.Schema.Type<typeof ${targetSchemaId}>;
+            export type ${id(targetSchemaId)} = S.Schema.Type<typeof ${id(targetSchemaId)}>;
           `;
         }
         break;
@@ -227,24 +228,24 @@ export const generateModuleWithSpec = (
         
         // Comments
         codeExports += dedent`
-          /* ${targetSchemaId} */
+          /* ${id(targetSchemaId)} */
           ${commentsGenerated.commentBlock}
           ${sourceSchemaId === targetSchemaId ? '' : `// Generated from OpenAPI \`${sourceSchemaId}\` schema`}
         `.replace(/[\n]+/, '\n') + '\n';
         
         // Manual type declarations (for recursive references)
         if (typeof definitionSpec.typeDeclaration === 'string') {
-          codeExports += `type _${targetSchemaId} = ${definitionSpec.typeDeclaration};`;
+          codeExports += `type _${id(targetSchemaId)} = ${definitionSpec.typeDeclaration};`;
           if (typeof definitionSpec.typeDeclarationEncoded === 'string') {
-            codeExports += `type _${targetSchemaId}Encoded = ${definitionSpec.typeDeclarationEncoded};`;
+            codeExports += `type _${id(targetSchemaId)}Encoded = ${definitionSpec.typeDeclarationEncoded};`;
           }
         }
         /*
         const typeAnnotation = typeof definitionSpec.typeDeclaration === 'string'
           ? (
             typeof definitionSpec.typeDeclarationEncoded === 'string'
-              ? `: S.Schema<_${targetSchemaId}, _${targetSchemaId}Encoded>`
-              : `: S.Schema<_${targetSchemaId}>`
+              ? `: S.Schema<_${id(targetSchemaId)}, _${id(targetSchemaId)}Encoded>`
+              : `: S.Schema<_${id(targetSchemaId)}>`
           )
           : '';
         */
@@ -263,30 +264,30 @@ export const generateModuleWithSpec = (
         const shouldGenerateOpaqueClass = false; //isObjectSchema(schemas, refFromSchemaId(sourceSchemaId)) && /^S.Struct/.test(code);
         if (shouldGenerateOpaqueStruct) {
           codeExports += dedent`
-            const _${targetSchemaId}${typeAnnotation} = ${schemaCode}; ${commentsGenerated.commentInline}
-            export interface ${targetSchemaId} extends S.Schema.Type<typeof _${targetSchemaId}> {}
-            export interface ${targetSchemaId}Encoded extends S.Schema.Encoded<typeof _${targetSchemaId}> {}
-            export const ${targetSchemaId}: S.Schema<${targetSchemaId}, ${targetSchemaId}Encoded> = _${targetSchemaId};
+            const _${id(targetSchemaId)}${typeAnnotation} = ${schemaCode}; ${commentsGenerated.commentInline}
+            export interface ${id(targetSchemaId)} extends S.Schema.Type<typeof _${id(targetSchemaId)}> {}
+            export interface ${id(targetSchemaId)}Encoded extends S.Schema.Encoded<typeof _${id(targetSchemaId)}> {}
+            export const ${id(targetSchemaId)}: S.Schema<${id(targetSchemaId)}, ${id(targetSchemaId)}Encoded> = _${id(targetSchemaId)};
           `.trim();
           /* To generate the runtime encoded schema:
-            export const ${targetSchemaId}Encoded: S.Schema<${targetSchemaId}Encoded, ${targetSchemaId}Encoded> =
-              S.encodedSchema(_${targetSchemaId});
+            export const ${id(targetSchemaId)}Encoded: S.Schema<${id(targetSchemaId)}Encoded, ${id(targetSchemaId)}Encoded> =
+              S.encodedSchema(_${id(targetSchemaId)});
           */
         } else if (shouldGenerateOpaqueClass) {
           // Experimental: generate a top level Struct as a class (for better opaque types)
           codeExports += dedent`
-            export class ${targetSchemaId} extends S.Class<${targetSchemaId}>("${targetSchemaId}")(
+            export class ${id(targetSchemaId)} extends S.Class<${id(targetSchemaId)}>("${id(targetSchemaId)}")(
               ${code.replace(/^S\.Struct\(/, '').replace(/\),?$/, '')}
             ) {}
           `.trim();
         } else {
           codeExports += dedent`
-            export const ${targetSchemaId}${typeAnnotation} = ${schemaCode}; ${commentsGenerated.commentInline}
-            export type ${targetSchemaId} = S.Schema.Type<typeof ${targetSchemaId}>;
-            export type ${targetSchemaId}Encoded = S.Schema.Encoded<typeof ${targetSchemaId}>;
+            export const ${id(targetSchemaId)}${typeAnnotation} = ${schemaCode}; ${commentsGenerated.commentInline}
+            export type ${id(targetSchemaId)} = S.Schema.Type<typeof ${id(targetSchemaId)}>;
+            export type ${id(targetSchemaId)}Encoded = S.Schema.Encoded<typeof ${id(targetSchemaId)}>;
           `.trim();
           /* To generate the runtime encoded schema:
-            export const ${targetSchemaId}Encoded = S.encodedSchema(${targetSchemaId});
+            export const ${id(targetSchemaId)}Encoded = S.encodedSchema(${id(targetSchemaId)});
           */
         }
         break;
@@ -328,7 +329,7 @@ export const generateModuleWithSpec = (
           modulePathRelative = './' + modulePathRelative;
         }
         
-        return `import { ${targetSchemaId} } from '${modulePathRelative}';`;
+        return `import { ${id(targetSchemaId)} } from '${modulePathRelative}';`;
       } else {
         return `// MISSING ${sourceSchemaId}`;
         //return `import { ${sourceSchemaId} } from '${ref}';`;

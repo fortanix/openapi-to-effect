@@ -6,7 +6,7 @@
  */
 
 import { type OpenAPIV3_1 as OpenApi } from 'openapi-types';
-import { type OpenApiSchemaId, type OpenApiSchema } from '../util/openapi.ts';
+import { type OpenApiSchemaId, type OpenApiSchema, decodeJsonPointer, encodeJsonPointer } from '../util/openapi.ts';
 
 
 //
@@ -17,17 +17,20 @@ type Ref = string; // OpenAPI schema reference
 type Resolve = (ref: Ref) => OpenApiSchema; // Callback to take a ref and resolve it to the corresponding schema
 
 export const schemaIdFromRef = (ref: Ref): OpenApiSchemaId => {
-  const matches = ref.match(/^#\/components\/schemas\/([a-zA-Z0-9_$]+)/);
-  if (!matches) {
+  const matches = ref.match(/^#\/components\/schemas\/.+/);
+  if (!/^#\/components\/schemas\/.+/.test(ref)) {
     throw new Error(`Reference format not supported: ${ref}`);
   }
   
-  const refSchemaId = matches[1];
+  const pointer = ref.replace(/^#/, '');
+  const [refSchemaId, ...segments] = decodeJsonPointer(pointer).slice(2);
   if (typeof refSchemaId === 'undefined') { throw new Error('Should not happen'); }
+  if (segments.length !== 0) { throw new Error(`Refs to nested paths not supported: ${ref}`); }
+  
   return refSchemaId;
 };
 export const refFromSchemaId = (schemaId: OpenApiSchemaId): Ref => {
-  return `#/components/schemas/${schemaId}`;
+  return '#' + encodeJsonPointer(['components', 'schemas', schemaId]);
 };
 
 const resolver = (schemas: Record<OpenApiSchemaId, OpenApiSchema>) => (ref: string): OpenApiSchema => {

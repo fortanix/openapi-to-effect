@@ -12,6 +12,8 @@ import { GenResultUtil } from './genUtil.ts';
 import { type Context as SchemaGenContext, generateForSchema } from './schemaGen.ts';
 
 
+const id = GenResultUtil.encodeIdentifier;
+
 // Take an OpenAPI schema and generate a top-level module, as a string.
 // @throws Error When we cannot generate a module from the given schema.
 export const generateModule = (schemaId: string, schema: OpenApiSchema): string => {
@@ -43,13 +45,13 @@ export const generateModule = (schemaId: string, schema: OpenApiSchema): string 
     ${refsSorted.map(ref => {
       const refId = schemaIdForRef(ref);
       if (!refId) { throw new Error(`Invalid ref: ${ref}`); }
-      return `import { ${refId} } from '${ref}';`;
+      return `import { ${id(refId)} } from '${ref}';`;
     }).join('\n')}
     
     ${commentsGenerated.commentBlock}
-    export const ${schemaId} = ${code}; ${commentsGenerated.commentInline}
-    export type ${schemaId} = S.Schema.Type<typeof ${schemaId}>;
-    export const ${schemaId}Encoded = S.encodedSchema(${schemaId});
-    export type ${schemaId}Encoded = S.Schema.Encoded<typeof ${schemaId}>;
+    export const ${id(schemaId)} = ${code}; ${commentsGenerated.commentInline}
+    export type ${id(schemaId)} = S.Schema.Type<typeof ${id(schemaId)}>;
+    export const ${id(schemaId)}Encoded = S.encodedSchema(${id(schemaId)});
+    export type ${id(schemaId)}Encoded = S.Schema.Encoded<typeof ${id(schemaId)}>;
   `;
 };

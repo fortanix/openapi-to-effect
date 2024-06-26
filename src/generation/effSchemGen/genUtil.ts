@@ -74,4 +74,18 @@ export const GenResultUtil = {
     if (pipe.length === 1) { return head; }
     return `pipe(${pipe.join(', ')})`;
   },
+  
+  // Convert an arbitrary name to a JS identifier
+  encodeIdentifier(name: string): string {
+    if (/^[a-zA-Z$_][a-zA-Z0-9$_]*$/g.test(name)) {
+      return name;
+    } else {
+      const nameSpecialCharsRemoved = name.replace(/[^a-zA-Z0-9$_]/g, '');
+      if (/^[0-9]/.test(nameSpecialCharsRemoved)) {
+        return '_' + nameSpecialCharsRemoved;
+      } else {
+        return nameSpecialCharsRemoved;
+      }
+    }
+  },
 };

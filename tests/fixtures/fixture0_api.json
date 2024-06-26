@@ -49,6 +49,9 @@
           }
         },
         "required": ["id", "name", "last_logged_in", "role"]
+      },
+      "Invalid Identifier #": {
+        "type": "string"
       }
     }
   }
