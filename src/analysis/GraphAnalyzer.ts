@@ -45,8 +45,12 @@ const depsShallow = (schema: OpenApiSchema): Set<Ref> => {
   if ('$ref' in schema) { // Case: OpenApi.ReferenceObject
     return new Set([schema.$ref]);
   } else { // Case: OpenApi.SchemaObject
-    if ('items' in schema) { // Case: OpenApi.ArraySchemaObject
-      return depsShallow(schema.items);
+    if (schema.type === 'array' || 'items' in schema) { // Case: OpenApi.ArraySchemaObject
+      if ('items' in schema) {
+        return depsShallow(schema.items);
+      } else { // Array of unknown
+        return new Set();
+      }
     } else { // Case: OpenApi.NonArraySchemaObject
       if ('allOf' in schema && typeof schema.allOf !== 'undefined') {
         return new Set(schema.allOf.flatMap(subschema => [...depsShallow(subschema)]));
@@ -57,6 +61,7 @@ const depsShallow = (schema: OpenApiSchema): Set<Ref> => {
       }
       
       switch (schema.type) {
+        case undefined: // Any type
         case 'null':
         case 'string':
         case 'number':
@@ -86,8 +91,12 @@ const depsDeep = (schema: OpenApiSchema, resolve: Resolve, visited: Set<Ref>): D
     if (visited.has(schema.$ref)) { return { [schema.$ref]: 'recurse' }; }
     return { [schema.$ref]: depsDeep(resolve(schema.$ref), resolve, new Set([...visited, schema.$ref])) };
   } else { // Case: OpenApi.SchemaObject
-    if ('items' in schema) { // Case: OpenApi.ArraySchemaObject
-      return depsDeep(schema.items, resolve, visited);
+    if (schema.type === 'array' || 'items' in schema) { // Case: OpenApi.ArraySchemaObject
+      if ('items' in schema) {
+        return depsDeep(schema.items, resolve, visited);
+      } else { // Array of unknown
+        return {};
+      }
     } else { // Case: OpenApi.NonArraySchemaObject
       if ('allOf' in schema && typeof schema.allOf !== 'undefined') {
         return Object.assign({}, ...schema.allOf.flatMap(subschema => depsDeep(subschema, resolve, visited)));
@@ -98,6 +107,8 @@ const depsDeep = (schema: OpenApiSchema, resolve: Resolve, visited: Set<Ref>): D
       }
       
       switch (schema.type) {
+        case undefined: // Any type
+          return {};
         case 'null':
         case 'string':
         case 'number':
@@ -249,8 +260,8 @@ const _isObjectSchema = (schema: OpenApiSchema, resolve: Resolve, visited: Set<R
     }
     return _isObjectSchema(resolve(schema.$ref), resolve, new Set([...visited, schema.$ref]));
   } else { // Case: OpenApi.SchemaObject
-    if ('items' in schema) { // Case: OpenApi.ArraySchemaObject
-      return _isObjectSchema(schema.items, resolve, visited);
+    if (schema.type === 'array' || 'items' in schema) { // Case: OpenApi.ArraySchemaObject
+      return false;
     } else { // Case: OpenApi.NonArraySchemaObject
       if ('allOf' in schema && typeof schema.allOf !== 'undefined') {
         return schema.allOf.flatMap(subschema => _isObjectSchema(subschema, resolve, visited)).every(Boolean);
@@ -261,6 +272,8 @@ const _isObjectSchema = (schema: OpenApiSchema, resolve: Resolve, visited: Set<R
       }
       
       switch (schema.type) {
+        case undefined: // Any type
+          return false; // Possibly an object, but we cannot know
         case 'null':
         case 'string':
         case 'number':

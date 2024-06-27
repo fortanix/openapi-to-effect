@@ -10,14 +10,24 @@ import { type OpenAPIV3_1 as OpenApi } from 'openapi-types';
 import { OpenApiSchemaId, type OpenApiRef, type OpenApiSchema } from '../../util/openapi.ts';
 
 import * as GenSpec from '../generationSpec.ts';
-import { isObjectSchema } from '../../analysis/GraphAnalyzer.ts';
+import { isObjectSchema, schemaIdFromRef } from '../../analysis/GraphAnalyzer.ts';
 import { type GenResult, GenResultUtil } from './genUtil.ts';
 
+
+const id = GenResultUtil.encodeIdentifier;
 
 export type Context = {
   schemas: Record<string, OpenApiSchema>,
   hooks: GenSpec.GenerationHooks,
   isSchemaIdBefore: (schemaId: OpenApiSchemaId) => boolean,
+};
+
+export const generateForUnknownSchema = (ctx: Context, schema: OpenApi.NonArraySchemaObject): GenResult => {
+  return {
+    code: `S.Unknown`,
+    refs: [],
+    comments: GenResultUtil.commentsFromSchemaObject(schema),
+  };
 };
 
 export const generateForNullSchema = (ctx: Context, schema: OpenApi.NonArraySchemaObject): GenResult => {
@@ -32,11 +42,11 @@ export const generateForStringSchema = (ctx: Context, schema: OpenApi.NonArraySc
   let refs: GenResult['refs'] = [];
   const code = ((): string => {
     if (Array.isArray(schema.enum)) {
-      if (!schema.enum.every(value => typeof value === 'string')) {
+      if (!schema.enum.every(value => typeof value === 'string' || typeof value === 'number')) {
         throw new TypeError(`Unknown enum value, expected string array: ${JSON.stringify(schema.enum)}`);
       }
       return dedent`S.Literal(
-        ${schema.enum.map((value: string) => JSON.stringify(value) + ',').join('\n')}
+        ${schema.enum.map((value: string | number) => JSON.stringify(String(value)) + ',').join('\n')}
       )`;
     }
     
@@ -293,17 +303,13 @@ export const generateForArraySchema = (ctx: Context, schema: OpenApi.ArraySchema
 
 export const generateForReferenceObject = (ctx: Context, schema: OpenApi.ReferenceObject): GenResult => {
   // FIXME: make this logic customizable (allow a callback to resolve a `$ref` string to a `Ref` instance?)
-  const matches = schema.$ref.match(/^#\/components\/schemas\/([a-zA-Z0-9_$]+)/);
-  if (!matches) {
-    throw new Error(`Reference format not supported: ${schema.$ref}`);
-  }
-  
-  const schemaId = matches[1];
-  if (typeof schemaId === 'undefined') { throw new Error('Should not happen'); }
+  const schemaId = schemaIdFromRef(schema.$ref);
   
   // If the referenced schema ID is topologically after the current one, wrap it in `S.suspend` for lazy eval
   const shouldSuspend = !ctx.isSchemaIdBefore(schemaId);
-  const code = shouldSuspend ? `S.suspend((): S.Schema<_${schemaId}, _${schemaId}Encoded> => ${schemaId})` : schemaId;
+  const code = shouldSuspend
+    ? `S.suspend((): S.Schema<_${id(schemaId)}, _${id(schemaId)}Encoded> => ${id(schemaId)})`
+    : id(schemaId);
   
   return { code, refs: [`./${schemaId}.ts`], comments: GenResultUtil.initComments() };
 };
@@ -317,8 +323,8 @@ export const generateForSchema = (ctx: Context, schema: OpenApiSchema): GenResul
   if ('$ref' in schema) { // Case: OpenApi.ReferenceObject
     return generateForReferenceObject(ctx, schema);
   } else { // Case: OpenApi.SchemaObject
-    if ('items' in schema && schema.type === 'array') { // Case: OpenApi.ArraySchemaObject
-      return generateForArraySchema(ctx, schema);
+    if (schema.type === 'array' || 'items' in schema) { // Case: OpenApi.ArraySchemaObject
+      return generateForArraySchema(ctx, { items: {}, ...schema } as OpenApi.ArraySchemaObject);
     } else if (isNonArraySchemaType(schema)) { // Case: OpenApi.NonArraySchemaObject
       if ('allOf' in schema && typeof schema.allOf !== 'undefined') {
         const schemasHead: undefined | OpenApiSchema = schema.allOf[0];
@@ -483,7 +489,7 @@ export const generateForSchema = (ctx: Context, schema: OpenApiSchema): GenResul
                 })
                 .join('\n')
               }
-            );
+            )
           `;
           return {
             code,
@@ -496,10 +502,6 @@ export const generateForSchema = (ctx: Context, schema: OpenApiSchema): GenResul
       type SchemaType = 'array' | OpenApi.NonArraySchemaObjectType;
       const type: undefined | OpenApi.NonArraySchemaObjectType | Array<SchemaType> = schema.type;
       
-      if (typeof type === 'undefined') {
-        throw new TypeError(`Missing 'type' in schema`);
-      }
-      
       const hookResult: null | GenResult = ctx.hooks.generateSchema?.(schema) ?? null;
       
       let result: GenResult;
@@ -507,6 +509,7 @@ export const generateForSchema = (ctx: Context, schema: OpenApiSchema): GenResul
         result = hookResult;
       } else {
         switch (type) {
+          case undefined: result = generateForUnknownSchema(ctx, schema); break;
           case 'null': result = generateForNullSchema(ctx, schema); break;
           case 'string': result = generateForStringSchema(ctx, schema); break;
           case 'number': result = generateForNumberSchema(ctx, schema); break;
