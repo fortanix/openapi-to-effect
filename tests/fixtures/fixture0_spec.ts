@@ -14,10 +14,14 @@ export default {
           schemaId: 'Category',
           typeDeclarationEncoded: `{
             readonly name: string,
+            readonly description: null | string,
+            readonly status?: undefined | null | 'ACTIVE' | 'DEPRIORITIZED',
             readonly subcategories?: undefined | { readonly [key: string]: _CategoryEncoded }
           }`,
           typeDeclaration: `{
             readonly name: string,
+            readonly description: null | string,
+            readonly status?: undefined | null | 'ACTIVE' | 'DEPRIORITIZED',
             readonly subcategories: { readonly [key: string]: _Category }
           }`,
         },

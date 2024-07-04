@@ -22,7 +22,15 @@ test('fixture0', { timeout: 30_000/*ms*/ }, async (t) => {
   const before = async () => {
     const cwd = path.dirname(fileURLToPath(import.meta.url));
     console.log('Preparing fixture0...');
-    const { stdout, stderr } = await exec(`./generate_fixture.sh fixture0`, { cwd });
+    
+    try {
+      const { stdout, stderr } = await exec(`./generate_fixture.sh fixture0`, { cwd });
+    } catch (error: unknown) {
+      if (error instanceof Error && 'stderr' in error) {
+        console.error(error.stderr);
+      }
+      throw error;
+    }
   };
   await before();
   
@@ -36,14 +44,14 @@ test('fixture0', { timeout: 30_000/*ms*/ }, async (t) => {
       last_logged_in: '2024-05-25T19:20:39.482Z',
       role: 'USER',
       interests: [
-        { name: 'Music' },
+        { name: 'Music', description: null },
       ],
     };
     assert.deepStrictEqual(S.decodeUnknownSync(fixture.User)(user1), {
       ...user1,
       last_logged_in: new Date('2024-05-25T19:20:39.482Z'), // Transformed to Date
       interests: [
-        { name: 'Music', subcategories: {} }, // Added default value
+        { name: 'Music', description: null, subcategories: {} }, // Added default value
       ],
     });
   });
