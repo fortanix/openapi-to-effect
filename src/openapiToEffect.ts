@@ -458,9 +458,8 @@ export const run = async (argsRaw: Array<string>): Promise<void> => {
   });
 };
 
-const [_argExec, argScript, ...args] = process.argv; // First two arguments should be the executable + script
-
 // Detect if this module is being run directly from the command line
+const [_argExec, argScript, ...args] = process.argv; // First two arguments should be the executable + script
 if (argScript && await fs.realpath(argScript) === fileURLToPath(import.meta.url)) {
   try {
     await run(args);

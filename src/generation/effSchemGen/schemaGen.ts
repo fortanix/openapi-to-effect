@@ -325,7 +325,7 @@ export const generateForSchema = (ctx: Context, schema: OpenApiSchema): GenResul
   } else { // Case: OpenApi.SchemaObject
     if (schema.type === 'array' || 'items' in schema) { // Case: OpenApi.ArraySchemaObject
       return generateForArraySchema(ctx, { items: {}, ...schema } as OpenApi.ArraySchemaObject);
-    } else if (isNonArraySchemaType(schema)) { // Case: OpenApi.NonArraySchemaObject
+    } else { // Case: OpenApi.NonArraySchemaObject | OpenApi.MixedSchemaObject
       if ('allOf' in schema && typeof schema.allOf !== 'undefined') {
         const schemasHead: undefined | OpenApiSchema = schema.allOf[0];
         if (schemasHead && schema.allOf.length === 1) { // If only one schema, simply generate that schema
@@ -485,7 +485,7 @@ export const generateForSchema = (ctx: Context, schema: OpenApiSchema): GenResul
                   return dedent`
                     ${commentsGenerated.commentBlock}
                     ${code}, ${commentsGenerated.commentInline}
-                  `;
+                  `.trim();
                 })
                 .join('\n')
               }
@@ -508,23 +508,29 @@ export const generateForSchema = (ctx: Context, schema: OpenApiSchema): GenResul
       if (hookResult !== null) {
         result = hookResult;
       } else {
-        switch (type) {
-          case undefined: result = generateForUnknownSchema(ctx, schema); break;
-          case 'null': result = generateForNullSchema(ctx, schema); break;
-          case 'string': result = generateForStringSchema(ctx, schema); break;
-          case 'number': result = generateForNumberSchema(ctx, schema); break;
-          case 'integer': result = generateForNumberSchema(ctx, schema); break;
-          case 'boolean': result = generateForBooleanSchema(ctx, schema); break;
-          case 'object': result = generateForObjectSchema(ctx, schema); break;
-          default: throw new TypeError(`Unsupported type "${type}"`);
+        if (typeof type === 'undefined') {
+          result = generateForUnknownSchema(ctx, schema as OpenApi.NonArraySchemaObject); // Any type
+        } else if (Array.isArray(type)) {
+          // `type` as an array is equivalent to `anyOf` with `type` set to the individual type string
+          const schemaAnyOf = { anyOf: type.map(type => ({ ...schema, type })) } as OpenApiSchema;
+          result = generateForSchema(ctx, schemaAnyOf);
+        } else {
+          const schemaNonMixed = schema as OpenApi.NonArraySchemaObject;
+          switch (type) {
+            case 'null': result = generateForNullSchema(ctx, schemaNonMixed); break;
+            case 'string': result = generateForStringSchema(ctx, schemaNonMixed); break;
+            case 'number': result = generateForNumberSchema(ctx, schemaNonMixed); break;
+            case 'integer': result = generateForNumberSchema(ctx, schemaNonMixed); break;
+            case 'boolean': result = generateForBooleanSchema(ctx, schemaNonMixed); break;
+            case 'object': result = generateForObjectSchema(ctx, schemaNonMixed); break;
+            default: throw new TypeError(`Unsupported type "${type}"`);
+          }
         }
       }
       return {
         ...result,
         code: `${result.code}`,
       };
-    } else { // Case: OpenApi.MixedSchemaObject
-      throw new Error(`Currently unsupported: MixedSchemaObject`);
     }
   }
 };

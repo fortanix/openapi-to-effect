@@ -22,7 +22,15 @@ test('fixture1', { timeout: 30_000/*ms*/ }, async (t) => {
   const before = async () => {
     const cwd = path.dirname(fileURLToPath(import.meta.url));
     console.log('Preparing fixture1...');
-    const { stdout, stderr } = await exec(`./generate_fixture.sh fixture1`, { cwd });
+    
+    try {
+      const { stdout, stderr } = await exec(`./generate_fixture.sh fixture1`, { cwd });
+    } catch (error: unknown) {
+      if (error instanceof Error && 'stderr' in error) {
+        console.error(error.stderr);
+      }
+      throw error;
+    }
   };
   await before();
   

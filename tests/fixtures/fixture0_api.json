@@ -10,6 +10,8 @@
         "type": "object",
         "properties": {
           "name": { "type": "string" },
+          "description": { "type": ["null", "string"] },
+          "status": { "type": ["null", "string"], "enum": ["ACTIVE", "DEPRIORITIZED"] },
           "subcategories": {
             "type": "object",
             "additionalProperties": {
@@ -18,7 +20,7 @@
             "default": {}
           }
         },
-        "required": ["name"]
+        "required": ["name", "description"]
       },
       "User": {
         "type": "object",
@@ -34,7 +36,8 @@
           },
           "last_logged_in": {
             "title": "When the user last logged in.",
-            "type": "string", "format": "date-time"
+            "type": "string",
+            "format": "date-time"
           },
           "role": {
             "title": "The user's role within the system.",
