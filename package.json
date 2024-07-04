@@ -1,6 +1,6 @@
 {
   "name": "openapi-to-effect",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "license": "MPL-2.0",
   "homepage": "https://github.com/fortanix/openapi-to-effect",
   "description": "OpenAPI to @effect/schema code generator",
