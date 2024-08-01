@@ -146,7 +146,7 @@ export default {
           code: dedent`
             export const RocheName = pipe(
               S.String,
-              S.pattern(new RegExp('^[^\\n]*[^\\s\\n][^\\n]*$')),
+              S.pattern(new RegExp('^[^\\\\n]*[^\\\\s\\\\n][^\\\\n]*$')),
               S.maxLength(4096),
             );
             export const RocheNameEncoded = S.encodedSchema(RocheName);
