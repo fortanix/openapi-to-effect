@@ -7,7 +7,7 @@
 
 import { dedent } from 'ts-dedent';
 import { type OpenAPIV3_1 as OpenApi } from 'openapi-types';
-import { OpenApiSchemaId, type OpenApiRef, type OpenApiSchema } from '../../util/openapi.ts';
+import { type OpenApiSchemaId, type OpenApiSchema } from '../../util/openapi.ts';
 
 import * as GenSpec from '../generationSpec.ts';
 import { isObjectSchema, schemaIdFromRef } from '../../analysis/GraphAnalyzer.ts';
