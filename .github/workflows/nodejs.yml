@@ -11,8 +11,7 @@ jobs:
         node-version:
           - 18.x
           - 20.x
-          #- 22.x # `tsc` currently segfaults on Node v22. Possibly due to:
-          # https://github.com/nodejs/node/issues/52797
+          - 22.x
 
     steps:
     - uses: actions/checkout@v4
