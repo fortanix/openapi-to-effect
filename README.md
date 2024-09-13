@@ -153,11 +153,11 @@ type _CategoryEncoded = {
 };
 export const Category = S.Struct({
   name: S.String,
-  subcategories: S.optional(
-    S.Record(
-      S.String,
-      S.suspend((): S.Schema<_Category, _CategoryEncoded> => Category),
-    ),
+  subcategories: S.optionalWith(
+    S.Record({
+      key: S.String,
+      value: S.suspend((): S.Schema<_Category, _CategoryEncoded> => Category),
+    }),
     {
       default: () => ({}),
     },
@@ -180,7 +180,7 @@ export const User = S.Struct({
    * - AUDITOR: Read only permissions
    */
   role: S.Literal('ADMIN', 'USER', 'AUDITOR'), // The user's role within the system.
-  interests: S.optional(S.Array(Category), {
+  interests: S.optionalWith(S.Array(Category), {
     default: () => [],
   }),
 }).annotations({ identifier: 'User' });
