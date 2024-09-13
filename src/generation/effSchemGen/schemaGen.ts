@@ -179,12 +179,13 @@ export const generateFieldsForObjectSchema = (ctx: Context, schema: OpenApi.NonA
     if (!propsRequired.has(propName)) {
       type OptionalParams = { exact?: boolean, default?: string };
       const optionalParams: OptionalParams = {};
-      const printOptionalParams = (optionalParams: OptionalParams): string => {
-        if (Object.keys(optionalParams).length === 0) { return ''; }
-        return `, {
+      const printOptional = (code: string, optionalParams: OptionalParams): string => {
+        if (Object.keys(optionalParams).length === 0) { return `S.optional(${code})`; }
+        const paramsFormatted = dedent`{
           ${Object.hasOwn(optionalParams, 'exact') ? `exact: ${optionalParams.exact},` : ''}
           ${Object.hasOwn(optionalParams, 'default') ? `default: ${optionalParams.default}` : ''}
         }`;
+        return `S.optionalWith(${code}, ${paramsFormatted})`;
       };
       
       const hasDefault = 'default' in propSchema && typeof propSchema.default !== 'undefined';
@@ -198,9 +199,9 @@ export const generateFieldsForObjectSchema = (ctx: Context, schema: OpenApi.NonA
       }
       
       if (ctx.hooks.optionalFieldRepresentation === 'nullish') {
-        propCode = `S.optional(S.NullOr(${propCode})${printOptionalParams(optionalParams)})`;
+        propCode = printOptional(`S.NullOr(${propCode})`, optionalParams);
       } else {
-        propCode = `S.optional(${propCode}${printOptionalParams(optionalParams)})`;
+        propCode = printOptional(propCode, optionalParams);
       }
     }
     
@@ -235,14 +236,14 @@ export const generateForObjectSchema = (ctx: Context, schema: OpenApi.NonArraySc
       if (typeof additionalPropSchema === 'undefined') {
         code = `S.Struct({})`;
       } else if (additionalPropSchema === true) {
-        code = `S.Record(S.String, S.Unknown())`;
+        code = `S.Record({ key: S.String, value: S.Unknown() })`;
       } else if (additionalPropSchema === false) {
-        code = `S.Record(S.Never, S.Never)`;
+        code = `S.Record({ key: S.Never, value: S.Never })`;
       } else {
         const additionalPropsResult = generateForSchema(ctx, additionalPropSchema);
         refs = GenResultUtil.combineRefs(refs, additionalPropsResult.refs);
         // TODO: also include the `comments` from `additionalPropsResult`?
-        code = `S.Record(S.String, ${additionalPropsResult.code})`;
+        code = `S.Record({ key: S.String, value: ${additionalPropsResult.code} })`;
       }
     } else {
       let indexSignature = '';
