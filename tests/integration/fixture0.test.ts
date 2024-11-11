@@ -10,7 +10,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { exec as execCallback } from 'node:child_process';
 
-import { Schema as S } from '@effect/schema';
+import { Schema as S } from 'effect';
 
 import assert from 'node:assert/strict';
 import { test } from 'node:test';

@@ -1,13 +1,13 @@
 
 import { dedent } from 'ts-dedent';
-import { AST } from '@effect/schema';
+import { SchemaAST } from 'effect';
 
 import { type GenerationSpec } from '../../src/generation/generationSpec.ts';
 import { GenResultUtil, type GenResult } from '../../src/generation/effSchemGen/genUtil.ts';
 import { type OpenAPIV3_1 as OpenAPIV3 } from 'openapi-types';
 
 
-const parseOptions: AST.ParseOptions = {
+const parseOptions: SchemaAST.ParseOptions = {
   errors: 'all',
   onExcessProperty: 'ignore',
 };

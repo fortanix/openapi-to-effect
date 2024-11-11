@@ -252,8 +252,7 @@ export const generateSchemasWithSpec = async (request: GenerateRequestWithSpec):
         dedent`
           /* Generated on ${new Date().toISOString()} from ${document.info.title} version ${document.info.version} */
           
-          import { pipe, Option } from 'effect';
-          import { Schema  as S } from '@effect/schema';
+          import { pipe, Option, Schema as S } from 'effect';
           
           ${bundle.replace(/(^|\n)(\s*)import [^;]+;(?! \/\/ <runtime>)/g, '')}
         `,
@@ -360,8 +359,8 @@ const printUsage = () => {
 
 type ScriptArgs = {
   values: {
-    help: boolean | undefined,
-    spec: string | undefined,
+    help?: undefined | boolean,
+    spec?: undefined | string,
   },
   positionals: Array<string>,
 };
@@ -442,7 +441,7 @@ export const run = async (argsRaw: Array<string>): Promise<void> => {
       return;
     }
     
-    const argsForCommand = { ...args, positionals: args.positionals.slice(1) };
+    const argsForCommand: ScriptArgs = { ...args, positionals: args.positionals.slice(1) };
     switch (command) {
       case 'gen':
         await runGenerator(argsForCommand);

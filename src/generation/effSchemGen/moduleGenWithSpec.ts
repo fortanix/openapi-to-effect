@@ -106,7 +106,7 @@ const processSchemaWithSpec = (spec: GenSpec.GenerationDefinitionSpec, schema: O
   return schema;
 };
 
-// Generate an @effect/schema module for the given module as per the given module spec
+// Generate an Effect Schema module for the given module as per the given module spec
 type GenerateModuleWithSpecOptions = {
   // Whether `schema1` is before `schema2` in the generation order
   isSchemaBefore: (schema1: OpenApiSchemaId, schema2: OpenApiSchemaId) => boolean,
@@ -341,8 +341,7 @@ export const generateModuleWithSpec = (
   //   /* Generated on ${new Date().toISOString()} from ${apiName} version ${apiVersion} */
   // Currently leaving this out because it means even simple changes cause a git diff upon regeneration.
   return dedent`
-    import { pipe, Option } from 'effect';
-    import { Schema as S } from '@effect/schema';
+    import { pipe, Option, Schema as S } from 'effect';
     
     ${codeImports}
     
