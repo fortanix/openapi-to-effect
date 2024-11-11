@@ -39,8 +39,7 @@ export const generateModule = (schemaId: string, schema: OpenApiSchema): string 
       return 0;
     });
   return dedent`
-    import { pipe, Option } from 'effect';
-    import { Schema as S } from '@effect/schema';
+    import { pipe, Option, Schema as S } from 'effect';
     
     ${refsSorted.map(ref => {
       const refId = schemaIdForRef(ref);

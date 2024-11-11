@@ -4,9 +4,7 @@
 
 # openapi-to-effect
 
-Generate [@effect/schema](https://www.npmjs.com/package/@effect/schema) definitions from an [OpenAPI](https://www.openapis.org) document.
-
-Note that `@effect/schema` is currently in pre-stable version, and thus there will likely be breaking changes in the future.
+Generate [Effect Schema](https://effect.website/docs/schema/introduction) definitions from an [OpenAPI](https://www.openapis.org) document.
 
 **Features:**
 
@@ -20,7 +18,7 @@ Note that `@effect/schema` is currently in pre-stable version, and thus there wi
 
 - We currently only support [OpenAPI v3.1](https://spec.openapis.org/oas/latest.html) documents.
 - Only JSON is supported for the OpenAPI document format. For other formats like YAML, run it through a [converter](https://onlineyamltools.com/convert-yaml-to-json) first.
-- The input must be a single OpenAPI document. Cross-document [references](https://swagger.io/docs/specification/using-ref/) are not currently supported.
+- The input must be a single OpenAPI document. Cross-document [references](https://swagger.io/docs/specification/using-ref) are not currently supported.
 - The `$allOf` operator currently only supports schemas of type `object`. Generic intersections are not currently supported.
 
 ## Usage
@@ -31,7 +29,7 @@ This package exposes an `openapi-to-effect` command:
 npx openapi-to-effect <command> <args>
 ```
 
-### Generating `@effect/schema` code with the `gen` command
+### Generating Effect Schema code with the `gen` command
 
 The `gen` command takes the path to an OpenAPI v3.1 document (in JSON format), the path to the output directory, and optionally a spec file to configure the output:
 
@@ -139,7 +137,7 @@ export default {
 **output/example.ts**
 
 ```ts
-import { Schema as S } from '@effect/schema';
+import { Schema as S } from 'effect';
 
 /* Category */
 

@@ -315,7 +315,7 @@ export const generateForReferenceObject = (ctx: Context, schema: OpenApi.Referen
   return { code, refs: [`./${schemaId}.ts`], comments: GenResultUtil.initComments() };
 };
 
-// Generate the @effect/schema code for the given OpenAPI schema
+// Generate the Effect Schema code for the given OpenAPI schema
 export const generateForSchema = (ctx: Context, schema: OpenApiSchema): GenResult => {
   const isNonArraySchemaType = (schema: OpenApiSchema): schema is OpenApi.NonArraySchemaObject => {
     return !('$ref' in schema) && (!('type' in schema) || !Array.isArray(schema.type));
@@ -333,7 +333,7 @@ export const generateForSchema = (ctx: Context, schema: OpenApiSchema): GenResul
           return generateForSchema(ctx, schemasHead);
         }
         
-        // `allOf` supports any type, but `@effect/schema` does not currently support generic intersections. Thus,
+        // `allOf` supports any type, but Effect Schema does not currently support generic intersections. Thus,
         // currently we only support `allOf` if it consists only of object schemas.
         // Idea: merge `allOf` schema first, e.g. using https://github.com/mokkabonna/json-schema-merge-allof
         const areAllObjects: boolean = schema.allOf.reduce(
@@ -413,7 +413,7 @@ export const generateForSchema = (ctx: Context, schema: OpenApiSchema): GenResul
             schemasResults = schemas.map(schema => generateForSchema(ctx, schema));
             
             // Note: `extend` doesn't quite cover the semantics of `allOf`, since it only accepts objects and
-            // assumes distinct types. However, @effect/schema has no generic built-in mechanism for this.
+            // assumes distinct types. However, Effect Schema has no generic built-in mechanism for this.
             code = dedent`
               pipe(
                 ${schemasResults
@@ -447,7 +447,7 @@ export const generateForSchema = (ctx: Context, schema: OpenApiSchema): GenResul
         } else {
           const schemasResults: Array<GenResult> = schemas.map(schema => generateForSchema(ctx, schema));
           // Note: `union` doesn't quite cover the semantics of `oneOf`, since `oneOf` must guarantee that exactly
-          // one schema matches. However, @effect/schema has no easy built-in mechanism for this.
+          // one schema matches. However, Effect Schema has no easy built-in mechanism for this.
           const code = dedent`
             S.Union(
               ${schemasResults

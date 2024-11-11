@@ -17,7 +17,6 @@ type Ref = string; // OpenAPI schema reference
 type Resolve = (ref: Ref) => OpenApiSchema; // Callback to take a ref and resolve it to the corresponding schema
 
 export const schemaIdFromRef = (ref: Ref): OpenApiSchemaId => {
-  const matches = ref.match(/^#\/components\/schemas\/.+/);
   if (!/^#\/components\/schemas\/.+/.test(ref)) {
     throw new Error(`Reference format not supported: ${ref}`);
   }

@@ -25,18 +25,19 @@ cat <<"EOT" | FIXTURE_NAME="${FIXTURE_NAME}" node --import=tsx | npx --silent pr
 (async () => {
   const fixtureName = process.env.FIXTURE_NAME;
   const { dedent } = await import('ts-dedent');
-  const S = await import('@effect/schema');
+  const S = await import('effect/Schema');
+  const FastCheck = await import('effect/FastCheck');
+  const Arbitrary = await import('effect/Arbitrary');
   const Fx = await import(`../project_simulation/generated/${fixtureName}/${fixtureName}.ts`);
   
   console.log(dedent`
-    import { pipe } from 'effect';
-    import { Schema as S, AST } from '@effect/schema';
+    import { pipe, Schema as S, SchemaAST, FastCheck, Arbitrary } from 'effect';
     import * as Api from './${fixtureName}.ts';
   ` + '\n\n');
   
   const opts = { errors: 'all', onExcessProperty: 'ignore' };
   console.log(dedent`
-    const opts: AST.ParseOptions = { errors: 'all', onExcessProperty: 'ignore' };
+    const opts: SchemaAST.ParseOptions = { errors: 'all', onExcessProperty: 'ignore' };
   ` + '\n\n');
   
   Object.entries(Fx)
@@ -44,11 +45,11 @@ cat <<"EOT" | FIXTURE_NAME="${FIXTURE_NAME}" node --import=tsx | npx --silent pr
     .forEach(([name, Schema]) => {
       // Note: using `encodedSchema` here will not produce an input that can be decoded successfully. See:
       // https://discord.com/channels/795981131316985866/847382157861060618/threads/1237521922011431014
-      //const sample = S.FastCheck.sample(S.Arbitrary.make(S.Schema.encodedSchema(Schema)), 1)[0];
+      //const sample = FastCheck.sample(Arbitrary.make(S.encodedSchema(Schema)), 1)[0];
       
       // Instead, we will sample an instance of the decoded type and then encode that
-      const sample = S.FastCheck.sample(S.Arbitrary.make(Schema), 1)[0];
-      const sampleEncoded = S.Schema.encodeSync(Schema, opts)(sample);
+      const sample = FastCheck.sample(Arbitrary.make(Schema), 1)[0];
+      const sampleEncoded = S.encodeSync(Schema, opts)(sample);
       
       console.log(dedent`
         const sample${name}: Api.${name} = pipe(

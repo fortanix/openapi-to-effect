@@ -23,7 +23,7 @@ export type GenerationHooks = {
 };
 
 
-// @effect/schema
+// Effect Schema
 export type EffectSchemaId = string;
 
 export type FieldNames = string; // Comma-separated string of field names (identifiers)
