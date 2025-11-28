@@ -236,7 +236,7 @@ export const generateForObjectSchema = (ctx: Context, schema: OpenApi.NonArraySc
       if (typeof additionalPropSchema === 'undefined') {
         code = `S.Struct({})`;
       } else if (additionalPropSchema === true) {
-        code = `S.Record({ key: S.String, value: S.Unknown() })`;
+        code = `S.Record({ key: S.String, value: S.Unknown })`;
       } else if (additionalPropSchema === false) {
         code = `S.Record({ key: S.Never, value: S.Never })`;
       } else {
